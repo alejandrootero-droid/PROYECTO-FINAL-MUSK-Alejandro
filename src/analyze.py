@@ -9,7 +9,7 @@ from src.sales_collection import SalesCollection
 
 def generate_report():
 
-    with open("Datos/clients.json", "r", encoding="utf-8") as f:
+    with open("data/clients.json", "r", encoding="utf-8") as f:
         clients_data = json.load(f)
 
     clients = []
@@ -24,7 +24,7 @@ def generate_report():
             )
         )
 
-    sales_df = pd.read_csv("Datos/sales.csv")
+    sales_df = pd.read_csv("data/sales.csv")
 
     sales = []
 
@@ -44,9 +44,7 @@ def generate_report():
     sales_collection = SalesCollection(sales)
 
     total_clients = len(clients)
-
     total_sales = len(sales)
-
     total_revenue = sum(sale.amount for sale in sales)
 
     clients_report = []
@@ -63,13 +61,11 @@ def generate_report():
             )
         )
 
-        if sale_count > 0:
-            average_sale = round(
-                total_spent / sale_count,
-                2
-            )
-        else:
-            average_sale = 0
+        average_sale = (
+            round(total_spent / sale_count, 2)
+            if sale_count > 0
+            else 0
+        )
 
         clients_report.append({
             "client_id": client.client_id,
@@ -98,17 +94,14 @@ def generate_report():
             client.country
         )
 
-        if country not in top_client_by_country:
+        if (
+            country not in top_client_by_country
+            or spent > top_client_by_country[country][1]
+        ):
             top_client_by_country[country] = (
                 client.name,
                 spent
             )
-        else:
-            if spent > top_client_by_country[country][1]:
-                top_client_by_country[country] = (
-                    client.name,
-                    spent
-                )
 
     top_client_by_country = {
         country: data[0]
