@@ -9,44 +9,87 @@ from src.sales_collection import SalesCollection
 
 def generate_report():
 
-    # -------------------------
-    # Cargar clientes JSON
-    # -------------------------
     with open("Datos/clients.json", "r", encoding="utf-8") as f:
         clients_data = json.load(f)
 
     clients = []
 
     for c in clients_data:
-        client = Client(
-            c["client_id"],
-            c["name"],
-            c["country"],
-            c["signup_date"]
+        clients.append(
+            Client(
+                c["client_id"],
+                c["Nombre"],
+                c["país"],
+                c["signup_date"]
+            )
         )
-        clients.append(client)
 
-    # -------------------------
-    # Cargar ventas CSV
-    # -------------------------
     sales_df = pd.read_csv("Datos/sales.csv")
 
     sales = []
 
     for _, row in sales_df.iterrows():
-
-        sale = Sale(
-            row["sale_id"],
-            row["client_id"],
-            row["product"],
-            row["category"],
-            row["amount"],
-            row["date"]
+        sales.append(
+            Sale(
+                row["sale_id"],
+                row["client_id"],
+                row["Producto"],
+                row["Categoría"],
+                row["Cantidad"],
+                row["Fecha"]
+            )
         )
-
-        sales.append(sale)
 
     client_collection = ClientCollection(clients)
     sales_collection = SalesCollection(sales)
+    
 
-    return {}
+    total_clients = len(clients)
+
+    total_sales = len(sales)
+
+    total_revenue = sum(sale.amount for sale in sales)
+    
+
+    clients_report = []
+
+    for client in clients:
+
+        total_spent = sales_collection.total_amount_by_client(
+            client.client_id
+        )
+
+        sale_count = len(
+            sales_collection.sales_by_client(
+                client.client_id
+            )
+        )
+
+        if sale_count > 0:
+            average_sale = round(
+                total_spent / sale_count,
+                2
+            )
+        else:
+            average_sale = 0
+
+        clients_report.append({
+            "client_id": client.client_id,
+            "name": client.name,
+            "total_spent": round(total_spent, 2),
+            "sale_count": sale_count,
+            "average_sale": average_sale
+        })
+
+
+
+    report = {
+        "summary": {
+            "total_clients": total_clients,
+            "total_sales": total_sales,
+            "total_revenue": round(total_revenue, 2)
+        },
+        "clients": clients_report
+    }
+
+    return report
