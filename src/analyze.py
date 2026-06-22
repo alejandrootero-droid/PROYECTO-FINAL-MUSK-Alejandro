@@ -123,6 +123,26 @@ def generate_report():
                 client.name
             )
 
+    sales_df["date"] = pd.to_datetime(
+        sales_df["date"]
+    )
+
+    sales_df["month"] = (
+        sales_df["date"]
+        .dt.to_period("M")
+    )
+
+    monthly_sales = (
+        sales_df.groupby("month")["amount"]
+        .sum()
+        .to_dict()
+    )
+
+    monthly_sales = {
+        str(k): float(v)
+        for k, v in monthly_sales.items()
+    }
+
     report = {
         "summary": {
             "total_clients": total_clients,
@@ -132,7 +152,8 @@ def generate_report():
         "clients": clients_report,
         "top_client_by_country": top_client_by_country,
         "sales_by_category": sales_by_category,
-        "high_spending_clients": high_spending_clients
+        "high_spending_clients": high_spending_clients,
+        "monthly_sales": monthly_sales
     }
 
     return report
