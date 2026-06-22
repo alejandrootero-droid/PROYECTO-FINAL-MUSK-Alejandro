@@ -42,14 +42,12 @@ def generate_report():
 
     client_collection = ClientCollection(clients)
     sales_collection = SalesCollection(sales)
-    
 
     total_clients = len(clients)
 
     total_sales = len(sales)
 
     total_revenue = sum(sale.amount for sale in sales)
-    
 
     clients_report = []
 
@@ -81,94 +79,92 @@ def generate_report():
             "average_sale": average_sale
         })
 
+    country_map = {
+        "España": "Spain",
+        "Alemania": "Germany",
+        "Francia": "France"
+    }
 
-country_map = {
-    "España": "Spain",
-    "Alemania": "Germany",
-    "Francia": "France"
-}
+    top_client_by_country = {}
 
-top_client_by_country = {}
+    for client in clients:
 
-for client in clients:
-
-    spent = sales_collection.total_amount_by_client(
-        client.client_id
-    )
-
-    country = country_map.get(
-        client.country,
-        client.country
-    )
-
-    if country not in top_client_by_country:
-        top_client_by_country[country] = (
-            client.name,
-            spent
+        spent = sales_collection.total_amount_by_client(
+            client.client_id
         )
-    else:
-        if spent > top_client_by_country[country][1]:
+
+        country = country_map.get(
+            client.country,
+            client.country
+        )
+
+        if country not in top_client_by_country:
             top_client_by_country[country] = (
                 client.name,
                 spent
             )
+        else:
+            if spent > top_client_by_country[country][1]:
+                top_client_by_country[country] = (
+                    client.name,
+                    spent
+                )
 
-top_client_by_country = {
-    country: data[0]
-    for country, data in top_client_by_country.items()
-}
+    top_client_by_country = {
+        country: data[0]
+        for country, data in top_client_by_country.items()
+    }
 
-sales_by_category = {}
+    sales_by_category = {}
 
-for sale in sales:
+    for sale in sales:
 
-    if sale.category not in sales_by_category:
-        sales_by_category[sale.category] = 0
+        if sale.category not in sales_by_category:
+            sales_by_category[sale.category] = 0
 
-    sales_by_category[sale.category] += sale.amount
+        sales_by_category[sale.category] += sale.amount
 
-high_spending_clients = []
+    high_spending_clients = []
 
-for client in clients:
+    for client in clients:
 
-    spent = sales_collection.total_amount_by_client(
-        client.client_id
-    )
-
-    if spent > 500:
-        high_spending_clients.append(
-            client.name
+        spent = sales_collection.total_amount_by_client(
+            client.client_id
         )
 
-sales_df["Fecha"] = pd.to_datetime(
-    sales_df["Fecha"]
-)
+        if spent > 500:
+            high_spending_clients.append(
+                client.name
+            )
 
-sales_df["mes"] = sales_df["Fecha"].dt.to_period("M")
+    sales_df["Fecha"] = pd.to_datetime(
+        sales_df["Fecha"]
+    )
 
-monthly_sales = (
-    sales_df.groupby("mes")["Cantidad"]
-    .sum()
-    .to_dict()
-)
+    sales_df["mes"] = sales_df["Fecha"].dt.to_period("M")
 
-monthly_sales = {
-    str(k): float(v)
-    for k, v in monthly_sales.items()
-}
+    monthly_sales = (
+        sales_df.groupby("mes")["Cantidad"]
+        .sum()
+        .to_dict()
+    )
 
-report = {
-    "summary": {
-        "total_clients": total_clients,
-        "total_sales": total_sales,
-        "total_revenue": round(total_revenue, 2)
-    },
-    "clients": clients_report,
-    "top_client_by_country": top_client_by_country,
-    "sales_by_category": sales_by_category,
-    "high_spending_clients": high_spending_clients,
-    "monthly_sales": monthly_sales
-}
+    monthly_sales = {
+        str(k): float(v)
+        for k, v in monthly_sales.items()
+    }
 
-return report
+    report = {
+        "summary": {
+            "total_clients": total_clients,
+            "total_sales": total_sales,
+            "total_revenue": round(total_revenue, 2)
+        },
+        "clients": clients_report,
+        "top_client_by_country": top_client_by_country,
+        "sales_by_category": sales_by_category,
+        "high_spending_clients": high_spending_clients,
+        "monthly_sales": monthly_sales
+    }
 
+    return report
