@@ -61,11 +61,13 @@ def generate_report():
             )
         )
 
-        average_sale = (
-            round(total_spent / sale_count, 2)
-            if sale_count > 0
-            else 0
-        )
+        if sale_count > 0:
+            average_sale = round(
+                total_spent / sale_count,
+                2
+            )
+        else:
+            average_sale = 0
 
         clients_report.append({
             "client_id": client.client_id,
@@ -75,13 +77,42 @@ def generate_report():
             "average_sale": average_sale
         })
 
+    # Cliente con mayor gasto por país
+    top_client_by_country = {}
+
+    for client in clients:
+
+        spent = sales_collection.total_amount_by_client(
+            client.client_id
+        )
+
+        country = client.country
+
+        if country not in top_client_by_country:
+            top_client_by_country[country] = (
+                client.name,
+                spent
+            )
+        else:
+            if spent > top_client_by_country[country][1]:
+                top_client_by_country[country] = (
+                    client.name,
+                    spent
+                )
+
+    top_client_by_country = {
+        country: data[0]
+        for country, data in top_client_by_country.items()
+    }
+
     report = {
         "summary": {
             "total_clients": total_clients,
             "total_sales": total_sales,
             "total_revenue": round(total_revenue, 2)
         },
-        "clients": clients_report
+        "clients": clients_report,
+        "top_client_by_country": top_client_by_country
     }
 
     return report
