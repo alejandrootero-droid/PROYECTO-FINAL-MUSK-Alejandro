@@ -1,21 +1,21 @@
-import json
-import pandas as pd
+import json                                                                            # Para leer clients.json
+import pandas as pd                                                                    # Para trabajar con sales.csv
 
-from src.client import Client
+from src.client import Client                                                          # Importamos nuestras clases: cliente, venta, muchos clientes, muchas ventas
 from src.sale import Sale
 from src.client_collection import ClientCollection
 from src.sales_collection import SalesCollection
 
 
-def generate_report():
+def generate_report():                                                                 # Funcion que genera el informe.
 
-    with open("data/clients.json", "r", encoding="utf-8") as f:
+    with open("data/clients.json", "r", encoding="utf-8") as f:                        # Aber clientes y lo convierte en una lista.
         clients_data = json.load(f)
 
-    clients = []
+    clients = []                                                                       # Lista vacia.
 
-    for c in clients_data:
-        clients.append(
+    for c in clients_data:                                                             # Recorremos todos los clientes.
+        clients.append(                                                                # Cada diccionario en un objeto.      
             Client(
                 c["client_id"],
                 c["name"],
@@ -24,12 +24,12 @@ def generate_report():
             )
         )
 
-    sales_df = pd.read_csv("data/sales.csv")
+    sales_df = pd.read_csv("data/sales.csv")                                           # Cargamos.
 
-    sales = []
+    sales = []                                                                         # Lista vacia.
 
-    for _, row in sales_df.iterrows():
-        sales.append(
+    for _, row in sales_df.iterrows():                                                 # Recorremos cada fila.
+        sales.append(                                                                  # Cada fila en un objeto.
             Sale(
                 row["sale_id"],
                 row["client_id"],
@@ -40,34 +40,34 @@ def generate_report():
             )
         )
 
-    client_collection = ClientCollection(clients)
+    client_collection = ClientCollection(clients)                                      # Creamos las colecciones para trabajar con clientes y ventas.
     sales_collection = SalesCollection(sales)
 
-    total_clients = len(clients)
+    total_clients = len(clients)                                                       # Totales.
     total_sales = len(sales)
-    total_revenue = sum(sale.amount for sale in sales)
+    total_revenue = sum(sale.amount for sale in sales)                                 # Suma ventas.
 
-    clients_report = []
+    clients_report = []                                                                # Lista vacia informacion cliente.
 
-    for client in clients:
+    for client in clients:                                                             # Recorremos los clientes.
 
-        total_spent = sales_collection.total_amount_by_client(
+        total_spent = sales_collection.total_amount_by_client(                         # Total gastado.
             client.client_id
         )
 
-        sale_count = len(
+        sale_count = len(                                                              # Numero de ventas.
             sales_collection.sales_by_client(
                 client.client_id
             )
         )
 
-        average_sale = (
+        average_sale = (                                                               # Media gasto por venta.
             round(total_spent / sale_count, 2)
             if sale_count > 0
             else 0
         )
 
-        clients_report.append({
+        clients_report.append({                                                        # Guardamos resultado.
             "client_id": client.client_id,
             "name": client.name,
             "total_spent": round(total_spent, 2),
@@ -75,11 +75,11 @@ def generate_report():
             "average_sale": average_sale
         })
 
-    top_client_by_country = {}
+    top_client_by_country = {}                                                          # Lista vacia.
 
-    for client in clients:
+    for client in clients:                                                              # Recorremos clientes.
 
-        spent = sales_collection.total_amount_by_client(
+        spent = sales_collection.total_amount_by_client(                                # 
             client.client_id
         )
 
